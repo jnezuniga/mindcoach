@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#0A0A0F"/>
+<title>MindCoach</title>
+<script>
+// Suprimir el aviso de Babel antes de que aparezca
+const _warn = console.warn.bind(console);
+console.warn = (...args) => {
+  if (args[0] && typeof args[0] === 'string' && args[0].includes('Babel')) return;
+  _warn(...args);
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+  html,body{background:#0A0A0F;font-family:Georgia,serif;height:100%;overflow:hidden;}
+  #root{height:100%;overflow:hidden;}
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:#0A0A0F;}
+  ::-webkit-scrollbar-thumb{background:#2A2A3F;border-radius:2px;}
+  textarea{font-family:Georgia,serif;resize:none;}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const{useState,useEffect,useRef}=React;
+
+const T={bg:"#0A0A0F",surface:"#12121A",card:"#1A1A26",border:"#2A2A3F",
+  accent1:"#6C63FF",accent2:"#FF6584",accent3:"#43E97B",accent4:"#F7C948",
+  text:"#E8E8F0",muted:"#7070A0",pnl:"#6C63FF",ie:"#FF6584",mm:"#43E97B"};
+
+const CURRICULUM=[
+  {s:1,d:1,pilar:"IE",titulo:"Reconocimiento Emocional",
+   teoria:"Las emociones no son el enemigo — son información. La IE empieza por nombrar lo que sientes antes de actuar sobre ello.\n\nCada emoción tiene una función. El miedo te protege. La rabia marca límites. La tristeza procesa pérdidas. La ansiedad te prepara.\n\nLa trampa común: actuar desde la emoción sin reconocerla primero. Un ingeniero civil que entra furioso a una negociación toma peores decisiones que uno que dice 'estoy frustrado' — y luego decide cómo actuar.",
+   ejercicio:"Pon una alarma a las 12pm y otra a las 6pm. Cuando suene, escribe en 10 segundos: ¿qué emoción domina ahora mismo? Solo ponle nombre. Sin análisis.",
+   ejemplo:"Antes de una reunión con un prospecto que te genera incertidumbre, nómbrala: 'tengo ansiedad anticipatoria'. Eso solo ya reduce su intensidad un 40% — lo confirma la neurociencia."},
+  {s:1,d:2,pilar:"PNL",titulo:"Metamodelo del Lenguaje",
+   teoria:"Las personas hablan con mapas, no con territorios. Cuando alguien dice 'nadie me entiende' no describe la realidad — describe su filtro de ella.\n\nLos 3 patrones a detectar: Generalizaciones ('siempre', 'nunca', 'nadie'), Omisiones ('es difícil' — ¿qué específicamente?), Distorsiones ('sé que no le interesa' — ¿cómo lo sabes?).\n\nTu herramienta: una pregunta de precisión suave que abre el mapa del otro sin confrontarlo.",
+   ejercicio:"En cada conversación de hoy, detecta al menos 2 generalizaciones. No las cuestiones todavía — solo anótalas mentalmente. El objetivo es activar el detector.",
+   ejemplo:"Cliente: 'En construcción los datos nunca están organizados.' Metamodelo: '¿En ningún proyecto que hayas visto?' Esa pregunta sola puede abrir una venta."},
+  {s:1,d:3,pilar:"MM",titulo:"Auditoría de Decisiones",
+   teoria:"La mayoría toma decisiones en piloto automático — por emoción, hábito, o lo que otros esperan. Un modelo mental es una forma explícita de pensar antes de decidir.\n\nEl marco básico: 1) ¿Qué decidí hoy? 2) ¿Qué información tenía? 3) ¿Qué sesgos pudieron influir? 4) ¿Qué haría diferente?\n\nLos errores de decisión se repiten porque nunca los analizamos. Un piloto hace debriefing después de cada vuelo. Un empresario también debería.",
+   ejercicio:"Esta noche elige la decisión más importante que tomaste hoy — aunque sea pequeña. Pásala por el marco de 4 pasos. Escribe máximo 5 líneas.",
+   ejemplo:"Decidiste no llamar a ese prospecto hoy. ¿Fue por falta de tiempo real, o por evitar el rechazo? Nombrarlo no te hace débil — te hace más preciso la próxima vez."},
+  {s:1,d:4,pilar:"IE",titulo:"Sesgo de Negatividad",
+   teoria:"Tu cerebro registra los eventos negativos con 3-5 veces más intensidad que los positivos. Es evolutivo — en la sabana, ignorar un peligro era fatal.\n\nEl problema moderno: este sesgo distorsiona tu evaluación de cómo te va. Un día con 8 cosas bien y 2 mal se siente como un mal día.\n\nLa intervención: no es positivismo forzado. Es recalibrar el registro activamente, dándole peso explícito a lo que sí funcionó.",
+   ejercicio:"Antes de dormir, escribe 3 cosas concretas que salieron bien hoy. No importa el tamaño. El cerebro necesita evidencia explícita para contrarrestar el sesgo.",
+   ejemplo:"'Hoy no cerré el negocio, pero el cliente me pidió una propuesta detallada.' Eso es un avance real. El sesgo lo convierte en fracaso — el registro consciente en evidencia."},
+  {s:1,d:5,pilar:"PNL",titulo:"Sistemas Representacionales",
+   teoria:"Las personas procesan la realidad por uno de tres canales: Visual ('ya veo lo que dices'), Auditivo ('eso suena bien'), Kinestésico ('siento que es correcto').\n\nCómo detectarlo: escucha las palabras que usa tu interlocutor. Visual: ver, mostrar, claro. Auditivo: escuchar, resonar, tono. Kinestésico: sentir, peso, sólido.\n\nAdaptar tu lenguaje al canal del otro genera conexión inmediata sin que lo note.",
+   ejercicio:"En tu próxima conversación importante, identifica si la persona usa más lenguaje visual, auditivo o kinestésico. Luego respóndele usando el mismo tipo de palabras.",
+   ejemplo:"Si tu prospecto dice 'quiero ver cómo se vería eso en mi obra', es visual. Tu propuesta debe tener gráficas, dashboards, imágenes — no texto denso."},
+  {s:2,d:1,pilar:"PNL",titulo:"Rapport Activo",
+   teoria:"Rapport es el estado de sintonía donde la comunicación fluye sin fricción. No es simpatía — es resonancia.\n\nLos 4 niveles: 1) Postura corporal — espeja sutilmente, 2) Ritmo de voz — ajusta velocidad y volumen, 3) Vocabulario — usa sus propias palabras, 4) Valores — conecta con lo que le importa a él.\n\nEl espejeo debe ser sutil con desfase de 3-5 segundos. Si es inmediato parece imitación.",
+   ejercicio:"En la primera conversación importante de hoy, dedica los primeros 3 minutos solo a observar y ajustar tu ritmo y vocabulario al del otro. Sin hacer nada más.",
+   ejemplo:"Si un director de obra habla rápido y usa jerga técnica — tú también. Si un gerente financiero es pausado y formal — tú también. El mismo mensaje con diferente canal produce resultados completamente distintos."},
+  {s:2,d:2,pilar:"IE",titulo:"Gestión Emocional Proactiva",
+   teoria:"La mayoría gestiona emociones reactivamente — espera a que aparezcan y entonces intenta controlarlas. La gestión proactiva es diferente: defines el estado que necesitas antes de entrar a cada situación.\n\nEl protocolo: 1) Revisa tu agenda, 2) Por cada situación exigente pregunta: ¿qué estado necesito llevar?, 3) Actívalo deliberadamente antes de entrar.\n\nCómo activar un estado: recuerda vívidamente una situación donde lo sentiste. El cerebro no distingue bien entre recuerdo vívido y realidad presente.",
+   ejercicio:"Mira tu agenda de mañana ahora mismo. Identifica la situación más exigente. Define en una palabra el estado que necesitas. Dedica 2 minutos a recordar cuando lo sentiste con fuerza.",
+   ejemplo:"Antes de una entrevista para la concesión vial, no esperas a estar nervioso para calmarte. Llegas al estado de 'autoridad tranquila' deliberadamente — recordando 18 años de decisiones en el Túnel."},
+  {s:2,d:3,pilar:"MM",titulo:"Pensamiento de Segundo Orden",
+   teoria:"El pensamiento de primer orden pregunta: ¿qué pasa si hago X? El de segundo orden: ¿y luego qué?\n\nLa mayoría actúa en primer orden. Los estrategas piensan en segundo y tercer orden.\n\nEjemplo: Bajar precios para conseguir clientes (1er orden). ¿Y luego? Clientes que esperan precio bajo, márgenes menores, marca débil (2do orden). Para aplicarlo: Si hago X → pasa Y → lo que genera Z.",
+   ejercicio:"Toma una decisión pendiente de Zuperciviles. Escribe la cadena de consecuencias hasta el tercer nivel. ¿Cambia la decisión al verla completa?",
+   ejemplo:"'Acepto hacer el piloto gratis.' → 'El cliente da referencia.' → 'Pero establezco el precedente de trabajar gratis, atrayendo clientes que no valoran el cobro.' ¿Vale la pena igual?"},
+  {s:2,d:4,pilar:"PNL",titulo:"Calibración No Verbal",
+   teoria:"El 55% de la comunicación es lenguaje corporal, el 38% es tono de voz, y solo el 7% son las palabras. Calibrar es leer con precisión el estado interno de alguien a través de señales externas.\n\nSeñales clave: microexpresiones (menos de 0.5 seg), cambios en la respiración, tensión en hombros y mandíbula, velocidad de voz, cuándo rompe el contacto visual.\n\nSabes lo que realmente pasa en una negociación, no solo lo que te dicen.",
+   ejercicio:"En tu próxima reunión, observa solo el lenguaje no verbal durante los primeros 5 minutos. Registra una observación concreta al terminar.",
+   ejemplo:"El cliente dice 'sí, me interesa' pero cruza los brazos y mira hacia la puerta. Esa incongruencia vale más que sus palabras. Pregunta: '¿Hay algo que no hayamos abordado?'"},
+  {s:2,d:5,pilar:"IE",titulo:"Empatía Funcional",
+   teoria:"Empatía no es sentir lo que el otro siente — eso es simpatía y te deja sin capacidad de ayudar. Empatía funcional es comprender el estado del otro sin perder el tuyo.\n\nSimpatía: 'yo también me sentiría mal' (te hundes). Empatía funcional: 'entiendo que esto te genera presión' (ves desde fuera).\n\nLa fórmula: Nombrar el estado + validarlo sin adoptarlo + redirigir hacia solución.",
+   ejercicio:"Elige una conversación difícil de la semana. Reconstruye qué dijo la otra persona. Escribe la respuesta con la fórmula: nombrar + validar + redirigir.",
+   ejemplo:"Prospecto: 'No sé si esto es para nosotros.' Respuesta: 'Tiene sentido la duda — es una inversión nueva. Precisamente por el tamaño, el retorno suele ser más rápido. ¿Qué resultado mínimo justificaría la inversión para ti?'"},
+  {s:3,d:1,pilar:"PNL",titulo:"Reencuadre de Contenido",
+   teoria:"Reencuadrar es cambiar el significado de un evento manteniendo los hechos. El contenido no cambia — cambia la interpretación.\n\nNo es positivismo falso. Es elegir la interpretación más útil entre las igualmente válidas.\n\nTipos: De significado ('fallé' → 'tengo nueva información'), De consecuencia ('todo se acaba' → 'tendré que ajustar la ruta').",
+   ejercicio:"Identifica una situación que te genera frustración. Escribe la interpretación actual. Luego escribe 3 interpretaciones alternativas igualmente válidas.",
+   ejemplo:"'No he cerrado ningún cliente en 2 meses' → Limitante: 'No sirvo para vender.' → Reencuadre: 'Tengo datos sobre qué conversaciones NO funcionan — exactamente lo que necesito para ajustar el proceso.'"},
+  {s:3,d:2,pilar:"MM",titulo:"Inversión — El Modelo de Munger",
+   teoria:"Charlie Munger popularizó el pensamiento inverso: en lugar de preguntar cómo lograr algo, pregunta cómo garantizar que no lo logras — y luego evita eso.\n\nEl cerebro detecta amenazas más fácilmente que oportunidades. Pensar al revés activa esa capacidad.\n\nLa pregunta clave: '¿Qué haría con certeza para destruir X?' En lugar de '¿cómo soy feliz?', pregunta '¿qué me haría miserable con certeza?'",
+   ejercicio:"¿Qué haría con certeza para que Zuperciviles fracase en 6 meses? Escribe 5 respuestas honestas. Revisa cuántas estás haciendo parcialmente hoy.",
+   ejemplo:"'No documentar casos de éxito, no hacer seguimiento post-propuesta, no tener proceso de venta claro, depender de un solo canal.' Si alguna es tu realidad hoy, la inversión te acaba de dar el diagnóstico más honesto."},
+  {s:3,d:3,pilar:"IE",titulo:"Creencias Limitantes",
+   teoria:"Una creencia limitante es un juicio sobre ti mismo que das por verdadero y que reduce tu campo de acción posible.\n\nNo son hechos — son interpretaciones fosilizadas.\n\nEl proceso de desmantelamiento: 1) Identificar la creencia, 2) ¿Es un hecho o una interpretación?, 3) Buscar evidencia contraria real, 4) Formular una creencia alternativa más útil.",
+   ejercicio:"Identifica la creencia limitante que más te cuesta ahora en Zuperciviles. Pásala por el proceso de 4 pasos. Escribe la creencia alternativa con evidencia real.",
+   ejemplo:"Creencia: 'Las constructoras no invierten en tecnología.' Evidencia contraria: las 4G en Colombia han invertido millones en sistemas de gestión. Creencia alternativa: 'Invierten cuando ven ROI claro — mi trabajo es hacerlo visible.'"},
+  {s:3,d:4,pilar:"PNL",titulo:"Reencuadre de Contexto",
+   teoria:"El reencuadre de contenido cambia el significado. El de contexto cambia el escenario: el mismo comportamiento que es un problema en un contexto, es una ventaja en otro.\n\nLa pregunta clave: '¿En qué contexto este rasgo sería una fortaleza?'\n\nPara objeciones: cuando un cliente señala una limitación de tu empresa, busca el contexto donde esa limitación es exactamente lo que se necesita.",
+   ejercicio:"Toma una característica de Zuperciviles que percibes como debilidad. Encuentra 2 contextos donde esa misma característica sea una ventaja real.",
+   ejemplo:"'Somos muy pequeños' en una licitación masiva es debilidad. En el contexto de un cliente que quiere atención directa del experto y adaptación rápida — es exactamente la fortaleza que necesita."},
+  {s:3,d:5,pilar:"MM",titulo:"Navaja de Occam",
+   teoria:"Entre explicaciones igualmente válidas, la más simple suele ser la correcta. William de Ockham, siglo XIV.\n\nPara qué sirve hoy: reducir el ruido mental al analizar problemas. Tendemos a construir explicaciones complejas para evitar respuestas incómodas simples.\n\nPregunta de diagnóstico: '¿Estoy complicando esto para evitar una respuesta simple que no me gusta?'",
+   ejercicio:"Toma un problema que llevas tiempo sin resolver. Aplica la navaja: ¿cuál es la explicación más simple? ¿Qué acción directa sugiere?",
+   ejemplo:"'No consigo clientes porque el mercado no me conoce, los precios son altos...' Navaja de Occam: '¿Con cuántos prospectos hablé este mes?' Si menos de 10, la explicación simple es volumen insuficiente — todo lo demás es secundario."},
+  {s:4,d:1,pilar:"PNL",titulo:"Anclaje Emocional",
+   teoria:"Un ancla es un estímulo que queda asociado a un estado emocional a través de la repetición. Una vez instalada, el estímulo activa el estado sin el evento original.\n\nCómo instalar: 1) Recuerda vívidamente una experiencia donde sentiste el estado, 2) En el pico, aplica el estímulo (ej: apretar dos dedos), 3) Rompe el estado, 4) Repite 5-7 veces en días distintos.\n\nEl ancla solo funciona si se instala en el pico real de la emoción.",
+   ejercicio:"Elige el estado que más necesitas bajo presión. Dedica 10 minutos hoy: elige el estímulo, recuerda el momento pico, aplícalo 5 veces. Esta noche pruébala.",
+   ejemplo:"Antes de una entrevista para la concesión vial, aprietas el pulgar e índice izquierdos. Eso activa 'autoridad serena' instalada recordando la mejor decisión que tomaste como Director de Operaciones del Túnel."},
+  {s:4,d:2,pilar:"IE",titulo:"Síntesis Emocional",
+   teoria:"Llevas 3 semanas nombrando, gestionando y reencuadrando emociones. La síntesis es el nivel siguiente: usar la información emocional como dato de gestión.\n\nTus patrones emocionales repetidos son señales sobre tu sistema, no solo sobre ti. Si sientes ansiedad cada vez que hablas de precios, eso habla de tu proceso de venta.\n\nLa pregunta de síntesis: ¿Qué me están diciendo mis emociones repetidas sobre los sistemas que tengo o me faltan?",
+   ejercicio:"Revisa los check-ins de las últimas 3 semanas. ¿Qué emoción apareció más? ¿En qué tipo de situación? ¿Qué cambio de sistema (no de actitud) resolvería esa emoción?",
+   ejemplo:"Si la ansiedad aparece siempre antes de presentar propuestas, el cambio no es 'ser más valiente' — es tener un proceso de propuesta más claro. La emoción da el diagnóstico; el sistema es la solución."},
+  {s:4,d:3,pilar:"MM",titulo:"Círculo de Competencia",
+   teoria:"Warren Buffett: 'Conoce tu círculo de competencia y quédate dentro de él. No importa cuán grande sea — lo que importa es que sepas dónde está el límite.'\n\nTres zonas: Núcleo (ventaja real, experiencia profunda), Borde (puedes operar con apoyo), Fuera (sin ventaja, riesgo alto).\n\nLa trampa: la mayoría sobreestima su círculo, especialmente en épocas de confianza alta.",
+   ejercicio:"Dibuja mentalmente tu círculo para Zuperciviles. ¿Qué está en el núcleo? ¿Qué estás haciendo fuera del círculo que te cuesta energía desproporcionada?",
+   ejemplo:"Núcleo: diagnóstico de madurez digital en infraestructura vial, operaciones de concesiones. Borde: desarrollo de software, marketing digital. Fuera: construcción directa, diseño estructural. Saber esto define qué hacer tú y qué subcontratar."},
+  {s:4,d:4,pilar:"PNL",titulo:"Integración Rapport + Reencuadre",
+   teoria:"Las técnicas por separado son herramientas. Integradas son un sistema completo.\n\nLa secuencia maestra: 1) Calibrar — observa el estado del interlocutor, 2) Rapport — sintoniza tu canal, 3) Metamodelo — detecta generalizaciones, 4) Empatía funcional — nombra su estado, 5) Reencuadre — perspectiva alternativa útil, 6) Ancla el estado final.\n\nEsta secuencia completa lleva 2-3 minutos. Con práctica es invisible.",
+   ejercicio:"Antes de tu próxima conversación importante, escribe en 3 líneas cómo aplicarás cada paso. Al terminar, evalúa qué funcionó.",
+   ejemplo:"Con el prospecto del piloto: Calibro (¿cómo llega?), rapport (ajusto ritmo), metamodelo ('nunca tuvimos datos limpios'), empatía ('entiendo la frustración'), reencuadre ('eso hace el punto de partida claro'), anclo ('¿cómo se vería trabajar con datos que sí funcionan?')."},
+  {s:4,d:5,pilar:"IE",titulo:"Revisión y Calibración Final",
+   teoria:"Llegaste al final del ciclo 1.0. La revisión no es el cierre — es el diagnóstico para el ciclo 2.0.\n\nLo que este mes instauró: un lenguaje para tus emociones, herramientas para comunicar con precisión, modelos para decidir con menos ruido.\n\nLo que el ciclo 2.0 profundizará: situaciones de mayor complejidad, integración bajo presión real, automatización de los patrones más útiles.",
+   ejercicio:"Responde 4 preguntas: 1) ¿Qué técnica se volvió más natural? 2) ¿Qué situación manejé mejor que hace un mes? 3) ¿Qué patrón limitante sigo repitiendo? 4) ¿Cuál es mi intención para el ciclo 2.0?",
+   ejemplo:"Este es el ejercicio más importante del mes. No lo respondas en 2 minutos. Dale 20. Lo que escribas aquí define la versión 2.0 del plan — personalizada a tu realidad, no a una plantilla."},
+];
+
+const PILAR_COLOR={PNL:T.pnl,IE:T.ie,MM:T.mm};
+const PILAR_LABEL={PNL:"PNL",IE:"Inteligencia Emocional",MM:"Modelos Mentales"};
+
+function lsLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch{return null;}}
+function lsSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch{}}
+
+async function askCoach(messages,perfil,checkins,sesionesCompletadas){
+  const ctx=`Eres MindCoach, entrenador personal de desarrollo humano. Tu usuario es Juan, ingeniero civil, CEO de Zuperciviles (consultora de datos para construcción), Medellín, Colombia. Semana actual: ${perfil?.semana||1}, Día: ${perfil?.dia||1}. Sesiones completadas: ${sesionesCompletadas||0}/20. Últimos check-ins: ${JSON.stringify(checkins?.slice(-3)||[])}. Habla en español con tuteo. Sé directo, concreto, ejemplos del mundo real de ingeniería o negocios. Máximo 3 párrafos. Sin asteriscos.`;
+  try{
+    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:ctx,messages})});
+    const data=await res.json();
+    return data.content?.[0]?.text||"Error conectando con el coach.";
+  }catch(e){return "Error de conexión. Verifica tu internet.";}
+}
+
+const Icon=({name,size=20,color=T.text})=>{
+  const icons={
+    home:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>,
+    chat:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>,
+    chart:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>,
+    check:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>,
+    arrow:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>,
+    fire:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>,
+    book:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+    send:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
+    lock:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+  };
+  return icons[name]||null;
+};
+
+function App(){
+  const[tab,setTab]=useState("home");
+  const[perfil,setPerfil]=useState(null);
+  const[sesiones,setSesiones]=useState({});
+  const[checkins,setCheckins]=useState([]);
+  const[meditaciones,setMeditaciones]=useState([]);
+  const[messages,setMessages]=useState([]);
+  const[input,setInput]=useState("");
+  const[loading,setLoading]=useState(false);
+  const[appLoading,setAppLoading]=useState(true);
+  const[sesionActiva,setSesionActiva]=useState(null);
+  const[sesionFase,setSesionFase]=useState("teoria");
+  const[checkinActivo,setCheckinActivo]=useState(false);
+  const[checkinData,setCheckinData]=useState({estado:3,situacion:"",aprendizaje:""});
+  const[meditacionActiva,setMeditacionActiva]=useState(false);
+  const[meditacionData,setMeditacionData]=useState({duracion:5,sensacion:"",pensamiento:""});
+  const chatEndRef=useRef(null);
+
+  useEffect(()=>{
+    const p=lsLoad("mc_perfil")||{semana:1,dia:1,racha:0};
+    const s=lsLoad("mc_sesiones")||{};
+    const c=lsLoad("mc_checkins")||[];
+    const med=lsLoad("mc_meditaciones")||[];
+    const m=lsLoad("mc_messages")||[];
+    setPerfil(p);setSesiones(s);setCheckins(c);setMeditaciones(med);setMessages(m);
+    setAppLoading(false);
+  },[]);
+
+  useEffect(()=>{chatEndRef.current?.scrollIntoView({behavior:"smooth"});},[messages]);
+
+  const cursoActual=CURRICULUM.find(l=>l.s===perfil?.semana&&l.d===perfil?.dia)||CURRICULUM[0];
+  const sesionesCompletadas=Object.keys(sesiones).length;
+
+  function calcPilar(pilar,ses){
+    const total=CURRICULUM.filter(l=>l.pilar===pilar).length;
+    const comp=CURRICULUM.filter(l=>l.pilar===pilar&&ses[`${l.s}-${l.d}`]).length;
+    return total>0?Math.round((comp/total)*100):0;
+  }
+  function calcIndice(ses,chk){
+    const completadas=Object.keys(ses).length;
+    const consistencia=Math.round((completadas/CURRICULUM.length)*100);
+    const promEmocion=chk.length>0?Math.round((chk.reduce((a,c)=>a+(c.estado||3),0)/chk.length/5)*100):50;
+    return{general:Math.round(consistencia*0.6+promEmocion*0.4),pnl:calcPilar("PNL",ses),ie:calcPilar("IE",ses),mm:calcPilar("MM",ses)};
+  }
+  const indice=perfil?calcIndice(sesiones,checkins):{general:0,pnl:0,ie:0,mm:0};
+
+  async function completarSesion(){
+    const key=`${cursoActual.s}-${cursoActual.d}`;
+    const newS={...sesiones,[key]:{fecha:new Date().toISOString(),completada:true}};
+    let nSem=perfil.semana,nDia=perfil.dia+1;
+    if(nDia>5){nDia=1;nSem=Math.min(nSem+1,4);}
+    const newP={...perfil,semana:nSem,dia:nDia,racha:(perfil.racha||0)+1};
+    setSesiones(newS);setPerfil(newP);lsSave("mc_sesiones",newS);lsSave("mc_perfil",newP);
+    setSesionActiva(null);setSesionFase("teoria");setTab("home");
+  }
+
+  async function guardarCheckin(){
+    const n={...checkinData,fecha:new Date().toISOString(),semana:perfil.semana,dia:perfil.dia};
+    const nc=[...checkins,n];setCheckins(nc);lsSave("mc_checkins",nc);
+    setCheckinActivo(false);setCheckinData({estado:3,situacion:"",aprendizaje:""});
+  }
+
+  async function guardarMeditacion(){
+    const n={...meditacionData,fecha:new Date().toISOString(),semana:perfil?.semana||1};
+    const nm=[...meditaciones,n];setMeditaciones(nm);lsSave("mc_meditaciones",nm);
+    setMeditacionActiva(false);setMeditacionData({duracion:5,sensacion:"",pensamiento:""});
+  }
+
+  async function sendMessage(){
+    if(!input.trim()||loading)return;
+    const userMsg={role:"user",content:input};
+    const newM=[...messages,userMsg];
+    setMessages(newM);setInput("");setLoading(true);
+    const reply=await askCoach(newM.map(m=>({role:m.role,content:m.content})),perfil,checkins,sesionesCompletadas);
+    const fin=[...newM,{role:"assistant",content:reply}];
+    setMessages(fin);lsSave("mc_messages",fin);setLoading(false);
+  }
+
+  if(appLoading)return(
+    <div style={{background:T.bg,height:"100vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{textAlign:"center"}}>
+        <div style={{width:48,height:48,borderRadius:"50%",border:`3px solid ${T.border}`,borderTopColor:T.accent1,animation:"spin 1s linear infinite",margin:"0 auto 16px"}}/>
+        <p style={{color:T.muted,fontSize:14}}>Cargando MindCoach...</p>
+      </div>
+    </div>
+  );
+
+  if(sesionActiva){
+    const lec=sesionActiva;const color=PILAR_COLOR[lec.pilar];
+    return(
+      <div style={{background:T.bg,height:"100vh",overflowY:"auto",fontFamily:"Georgia,serif",color:T.text}}>
+        <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"16px 20px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10}}>
+          <button onClick={()=>{setSesionActiva(null);setSesionFase("teoria");}} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",fontSize:20,padding:4}}>←</button>
+          <div style={{flex:1}}>
+            <div style={{fontSize:11,color,fontFamily:"monospace",letterSpacing:2,marginBottom:4}}>{PILAR_LABEL[lec.pilar]} · S{lec.s}D{lec.d}</div>
+            <div style={{fontSize:16,fontWeight:"bold"}}>{lec.titulo}</div>
+          </div>
+          <div style={{display:"flex",gap:6}}>{["teoria","ejercicio","ejemplo"].map(f=><div key={f} style={{width:8,height:8,borderRadius:"50%",background:sesionFase===f?color:T.border}}/>)}</div>
+        </div>
+        <div style={{padding:"24px 20px 40px",animation:"fadeUp 0.4s ease"}}>
+          {sesionFase==="teoria"&&<>
+            <div style={{background:`${color}15`,border:`1px solid ${color}40`,borderRadius:12,padding:"16px 20px",marginBottom:24}}>
+              <div style={{fontSize:11,color,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>CONCEPTO</div>
+              {lec.teoria.split('\n\n').map((p,i)=><p key={i} style={{fontSize:15,lineHeight:1.7,color:T.text,marginBottom:10}}>{p}</p>)}
+            </div>
+            <button onClick={()=>setSesionFase("ejercicio")} style={{width:"100%",background:color,border:"none",borderRadius:12,padding:"16px",color:"#fff",fontSize:15,fontWeight:"bold",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              Al ejercicio <Icon name="arrow" size={18} color="#fff"/>
+            </button>
+          </>}
+          {sesionFase==="ejercicio"&&<>
+            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 20px",marginBottom:24}}>
+              <div style={{fontSize:11,color:T.accent4,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>EJERCICIO DE HOY</div>
+              <p style={{fontSize:15,lineHeight:1.7,color:T.text}}>{lec.ejercicio}</p>
+            </div>
+            <div style={{display:"flex",gap:12}}>
+              <button onClick={()=>setSesionFase("teoria")} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px",color:T.muted,fontSize:14,cursor:"pointer"}}>← Volver</button>
+              <button onClick={()=>setSesionFase("ejemplo")} style={{flex:2,background:color,border:"none",borderRadius:12,padding:"14px",color:"#fff",fontSize:14,fontWeight:"bold",cursor:"pointer"}}>Ver ejemplo →</button>
+            </div>
+          </>}
+          {sesionFase==="ejemplo"&&<>
+            <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"16px 20px",marginBottom:16}}>
+              <div style={{fontSize:11,color:T.accent3,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>EJEMPLO REAL</div>
+              <p style={{fontSize:15,lineHeight:1.7,color:T.text,fontStyle:"italic"}}>{lec.ejemplo}</p>
+            </div>
+            <button onClick={completarSesion} style={{width:"100%",background:`linear-gradient(135deg,${T.accent3},${T.accent1})`,border:"none",borderRadius:12,padding:"18px",color:"#fff",fontSize:16,fontWeight:"bold",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:10}}>
+              <Icon name="check" size={20} color="#fff"/> Sesión completada
+            </button>
+          </>}
+        </div>
+      </div>
+    );
+  }
+
+  if(meditacionActiva)return(
+    <div style={{background:T.bg,height:"100vh",overflowY:"auto",fontFamily:"Georgia,serif",color:T.text}}>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"16px 20px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0}}>
+        <button onClick={()=>setMeditacionActiva(false)} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",fontSize:20,padding:4}}>←</button>
+        <div><div style={{fontSize:16,fontWeight:"bold"}}>Registro de meditación</div><div style={{fontSize:12,color:T.muted,marginTop:2}}>Captura lo que trajo tu práctica</div></div>
+      </div>
+      <div style={{padding:"24px 20px 40px"}}>
+        <div style={{background:"#7B68EE15",border:"1px solid #7B68EE40",borderRadius:12,padding:"14px 16px",marginBottom:24}}>
+          <div style={{fontSize:11,color:"#7B68EE",fontFamily:"monospace",letterSpacing:2,marginBottom:8}}>TÉCNICA DE HOY</div>
+          <p style={{fontSize:13,color:T.muted,lineHeight:1.6}}>Respiración 4-7-8: inhala 4 seg → sostén 7 → exhala 8. Repite 4 ciclos. Luego observa los pensamientos sin seguirlos.</p>
+        </div>
+        <div style={{marginBottom:24}}>
+          <p style={{fontSize:14,color:T.muted,marginBottom:12}}>¿Cuántos minutos meditaste?</p>
+          <div style={{display:"flex",gap:10}}>
+            {[5,7,10,15].map(d=><button key={d} onClick={()=>setMeditacionData(m=>({...m,duracion:d}))} style={{flex:1,background:meditacionData.duracion===d?"#7B68EE":T.card,border:`1px solid ${meditacionData.duracion===d?"#7B68EE":T.border}`,borderRadius:10,padding:"12px 0",color:meditacionData.duracion===d?"#fff":T.muted,fontSize:14,fontWeight:"bold",cursor:"pointer"}}>{d}'</button>)}
+          </div>
+        </div>
+        <div style={{marginBottom:20}}>
+          <p style={{fontSize:14,color:T.muted,marginBottom:10}}>¿Qué sensación predominó?</p>
+          <textarea value={meditacionData.sensacion} onChange={e=>setMeditacionData(m=>({...m,sensacion:e.target.value}))} placeholder="Ej: calma, tensión, ligereza..." style={{width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px 14px",color:T.text,fontSize:14,lineHeight:1.6,outline:"none",minHeight:72}}/>
+        </div>
+        <div style={{marginBottom:28}}>
+          <p style={{fontSize:14,color:T.muted,marginBottom:10}}>¿Hubo algún pensamiento o insight especial?</p>
+          <textarea value={meditacionData.pensamiento} onChange={e=>setMeditacionData(m=>({...m,pensamiento:e.target.value}))} placeholder="Lo que surgió espontáneamente..." style={{width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px 14px",color:T.text,fontSize:14,lineHeight:1.6,outline:"none",minHeight:96}}/>
+        </div>
+        <button onClick={guardarMeditacion} style={{width:"100%",background:"linear-gradient(135deg,#7B68EE,#6C63FF)",border:"none",borderRadius:12,padding:"16px",color:"#fff",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>Guardar meditación</button>
+      </div>
+    </div>
+  );
+
+  if(checkinActivo){
+    const emojis=["😔","😐","😊","💪","🔥"];
+    return(
+      <div style={{background:T.bg,height:"100vh",overflowY:"auto",fontFamily:"Georgia,serif",color:T.text}}>
+        <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"16px 20px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0}}>
+          <button onClick={()=>setCheckinActivo(false)} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",fontSize:20,padding:4}}>←</button>
+          <div style={{fontSize:16,fontWeight:"bold"}}>Check-in del día</div>
+        </div>
+        <div style={{padding:"24px 20px 40px"}}>
+          <div style={{marginBottom:28}}>
+            <p style={{fontSize:14,color:T.muted,marginBottom:16}}>¿Cómo fue tu estado emocional hoy?</p>
+            <div style={{display:"flex",justifyContent:"space-between"}}>
+              {emojis.map((e,i)=><button key={i} onClick={()=>setCheckinData(d=>({...d,estado:i+1}))} style={{fontSize:32,background:checkinData.estado===i+1?`${T.accent1}30`:"none",border:`2px solid ${checkinData.estado===i+1?T.accent1:"transparent"}`,borderRadius:12,padding:"8px 12px",cursor:"pointer"}}>{e}</button>)}
+            </div>
+          </div>
+          <div style={{marginBottom:20}}>
+            <p style={{fontSize:14,color:T.muted,marginBottom:10}}>¿Qué situación importante viviste hoy?</p>
+            <textarea value={checkinData.situacion} onChange={e=>setCheckinData(d=>({...d,situacion:e.target.value}))} placeholder="Describe brevemente..." style={{width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px 14px",color:T.text,fontSize:14,lineHeight:1.6,outline:"none",minHeight:80}}/>
+          </div>
+          <div style={{marginBottom:28}}>
+            <p style={{fontSize:14,color:T.muted,marginBottom:10}}>¿Qué aprendiste o notaste hoy?</p>
+            <textarea value={checkinData.aprendizaje} onChange={e=>setCheckinData(d=>({...d,aprendizaje:e.target.value}))} placeholder="Una observación concreta..." style={{width:"100%",background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px 14px",color:T.text,fontSize:14,lineHeight:1.6,outline:"none",minHeight:80}}/>
+          </div>
+          <button onClick={guardarCheckin} style={{width:"100%",background:T.accent2,border:"none",borderRadius:12,padding:"16px",color:"#fff",fontSize:15,fontWeight:"bold",cursor:"pointer"}}>Guardar check-in</button>
+        </div>
+      </div>
+    );
+  }
+
+  const renderHome=()=>{
+    const sesionKey=`${cursoActual.s}-${cursoActual.d}`;
+    const yaHecha=sesiones[sesionKey];
+    const color=PILAR_COLOR[cursoActual.pilar];
+    const hoy=new Date().toDateString();
+    const meditadoHoy=meditaciones.some(m=>new Date(m.fecha).toDateString()===hoy);
+    const ultimaMed=meditaciones[meditaciones.length-1];
+    return(
+      <div style={{padding:"20px 20px 100px"}}>
+        <div style={{marginBottom:20}}>
+          <p style={{fontSize:12,color:T.muted,letterSpacing:2,fontFamily:"monospace"}}>{new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"}).toUpperCase()}</p>
+          <h1 style={{fontSize:26,fontWeight:"bold",marginTop:4}}>Hola, Juan 👋</h1>
+        </div>
+        <div style={{background:meditadoHoy?"#7B68EE15":T.card,border:`1px solid ${meditadoHoy?"#7B68EE50":T.border}`,borderRadius:14,padding:"16px",marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+            <div style={{flex:1}}>
+              <div style={{fontSize:11,color:"#7B68EE",fontFamily:"monospace",letterSpacing:2,marginBottom:4}}>MEDITACIÓN MATUTINA</div>
+              {meditadoHoy?<><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:18}}>🧘</span><span style={{fontSize:14,fontWeight:"bold",color:T.accent3}}>{ultimaMed?.duracion} min completados</span></div>{ultimaMed?.pensamiento&&<p style={{fontSize:12,color:T.muted,marginTop:6,fontStyle:"italic",lineHeight:1.5}}>"{ultimaMed.pensamiento.slice(0,80)}{ultimaMed.pensamiento.length>80?"...":""}"</p>}</>:<p style={{fontSize:13,color:T.muted,marginTop:4}}>5-10 min · Antes de revisar el celular</p>}
+            </div>
+            {meditadoHoy?<div style={{background:`${T.accent3}20`,border:`1px solid ${T.accent3}`,borderRadius:8,padding:"4px 10px"}}><Icon name="check" size={14} color={T.accent3}/></div>:<button onClick={()=>setMeditacionActiva(true)} style={{background:"#7B68EE",border:"none",borderRadius:10,padding:"8px 14px",color:"#fff",fontSize:13,fontWeight:"bold",cursor:"pointer",whiteSpace:"nowrap",marginLeft:12}}>Registrar</button>}
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
+            <p style={{fontSize:11,color:T.muted,fontFamily:"monospace",letterSpacing:1.5}}>ÍNDICE POTENCIAL</p>
+            <p style={{fontSize:36,fontWeight:"bold",color:T.accent1,lineHeight:1.1,marginTop:4}}>{indice.general}</p>
+            <div style={{height:4,background:T.border,borderRadius:2,marginTop:8}}><div style={{height:"100%",background:T.accent1,borderRadius:2,width:`${indice.general}%`}}/></div>
+          </div>
+          <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
+            <p style={{fontSize:11,color:T.muted,fontFamily:"monospace",letterSpacing:1.5}}>RACHA</p>
+            <div style={{display:"flex",alignItems:"center",gap:8,marginTop:4}}><Icon name="fire" size={28} color={T.accent4}/><p style={{fontSize:36,fontWeight:"bold",color:T.accent4,lineHeight:1.1}}>{perfil?.racha||0}</p></div>
+            <p style={{fontSize:11,color:T.muted,marginTop:8}}>días consecutivos</p>
+          </div>
+        </div>
+        <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:20}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <p style={{fontSize:13,color:T.muted}}>Semana {perfil?.semana||1} de 4</p>
+            <p style={{fontSize:13,color:T.accent1}}>{sesionesCompletadas}/20 sesiones</p>
+          </div>
+          <div style={{display:"flex",gap:4}}>
+            {CURRICULUM.map((l,i)=>{const k=`${l.s}-${l.d}`;const done=sesiones[k];const current=l.s===perfil?.semana&&l.d===perfil?.dia;return<div key={i} style={{flex:1,height:6,borderRadius:3,background:done?PILAR_COLOR[l.pilar]:current?`${PILAR_COLOR[l.pilar]}60`:T.border}}/>;  })}
+          </div>
+        </div>
+        <div style={{background:`linear-gradient(135deg,${color}20,${T.card})`,border:`1px solid ${color}50`,borderRadius:16,padding:"20px",marginBottom:16}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
+            <div><div style={{fontSize:11,color,fontFamily:"monospace",letterSpacing:2,marginBottom:6}}>{PILAR_LABEL[cursoActual.pilar]}</div><h2 style={{fontSize:20,fontWeight:"bold"}}>{cursoActual.titulo}</h2></div>
+            {yaHecha&&<div style={{background:`${T.accent3}20`,border:`1px solid ${T.accent3}`,borderRadius:8,padding:"4px 10px"}}><Icon name="check" size={14} color={T.accent3}/></div>}
+          </div>
+          {yaHecha?<div style={{display:"flex",gap:10}}><button onClick={()=>setCheckinActivo(true)} style={{flex:1,background:T.accent2,border:"none",borderRadius:10,padding:"12px",color:"#fff",fontSize:14,fontWeight:"bold",cursor:"pointer"}}>Check-in nocturno</button><button onClick={()=>setTab("coach")} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px",color:T.text,fontSize:14,cursor:"pointer"}}>Hablar con coach</button></div>:<button onClick={()=>{setSesionActiva(cursoActual);setSesionFase("teoria");}} style={{width:"100%",background:color,border:"none",borderRadius:10,padding:"14px",color:"#fff",fontSize:15,fontWeight:"bold",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="book" size={18} color="#fff"/> Iniciar sesión</button>}
+        </div>
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>PRÓXIMAS SESIONES</p>
+        {CURRICULUM.slice(CURRICULUM.findIndex(l=>l.s===perfil?.semana&&l.d===perfil?.dia)+1,CURRICULUM.findIndex(l=>l.s===perfil?.semana&&l.d===perfil?.dia)+4).map((l,i)=>{
+          const c=PILAR_COLOR[l.pilar];
+          return<div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12,opacity:0.6}}><div style={{width:8,height:8,borderRadius:"50%",background:c,flexShrink:0}}/><div style={{flex:1}}><p style={{fontSize:13,fontWeight:"bold"}}>{l.titulo}</p><p style={{fontSize:11,color:T.muted,marginTop:2}}>S{l.s}D{l.d} · {PILAR_LABEL[l.pilar]}</p></div><Icon name="lock" size={14} color={T.muted}/></div>;
+        })}
+      </div>
+    );
+  };
+
+  const renderCoach=()=>(
+    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 68px)"}}>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 20px"}}><p style={{fontSize:16,fontWeight:"bold"}}>Coach IA</p><p style={{fontSize:12,color:T.muted,marginTop:2}}>Cuéntame qué pasó hoy</p></div>
+      <div style={{flex:1,overflowY:"auto",padding:"20px 16px"}}>
+        {messages.length===0&&<div style={{textAlign:"center",padding:"40px 20px"}}><div style={{fontSize:40,marginBottom:16}}>🧠</div><p style={{color:T.muted,fontSize:14,lineHeight:1.6}}>Cuéntame cómo aplicaste el ejercicio de hoy, o hazme cualquier pregunta.</p><div style={{marginTop:20,display:"flex",flexDirection:"column",gap:8}}>{["¿Cómo aplico rapport en mi próxima reunión?","Quiero practicar manejo de objeciones","¿Qué es el pensamiento de segundo orden?"].map((s,i)=><button key={i} onClick={()=>setInput(s)} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.muted,fontSize:13,cursor:"pointer",textAlign:"left"}}>{s}</button>)}</div></div>}
+        {messages.map((m,i)=><div key={i} style={{marginBottom:16,display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}><div style={{maxWidth:"85%",background:m.role==="user"?T.accent1:T.card,border:m.role==="assistant"?`1px solid ${T.border}`:"none",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"12px 16px"}}><p style={{fontSize:14,lineHeight:1.7,color:T.text,whiteSpace:"pre-wrap"}}>{m.content}</p></div></div>)}
+        {loading&&<div style={{display:"flex",gap:6,padding:"12px 16px"}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:T.accent1,animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div>}
+        <div ref={chatEndRef}/>
+      </div>
+      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,padding:"12px 16px",display:"flex",gap:10,alignItems:"flex-end"}}>
+        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}} placeholder="Escribe aquí..." rows={1} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",maxHeight:120,overflowY:"auto"}}/>
+        <button onClick={sendMessage} disabled={!input.trim()||loading} style={{background:input.trim()&&!loading?T.accent1:T.border,border:"none",borderRadius:12,width:44,height:44,cursor:input.trim()&&!loading?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon name="send" size={18} color="#fff"/></button>
+      </div>
+    </div>
+  );
+
+  const renderProgreso=()=>{
+    const pilares=[{key:"pnl",label:"PNL",color:T.pnl,valor:indice.pnl},{key:"ie",label:"IE",color:T.ie,valor:indice.ie},{key:"mm",label:"MM",color:T.mm,valor:indice.mm}];
+    const ultimosCheckins=checkins.slice(-7);
+    return(
+      <div style={{padding:"20px 20px 100px"}}>
+        <h2 style={{fontSize:22,fontWeight:"bold",marginBottom:20}}>Tu Progreso</h2>
+        <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:16,padding:"20px",marginBottom:20,textAlign:"center"}}>
+          <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2}}>ÍNDICE DE POTENCIAL</p>
+          <div style={{position:"relative",width:120,height:120,margin:"16px auto"}}>
+            <svg width="120" height="120" viewBox="0 0 120 120"><circle cx="60" cy="60" r="50" fill="none" stroke={T.border} strokeWidth="10"/><circle cx="60" cy="60" r="50" fill="none" stroke={T.accent1} strokeWidth="10" strokeDasharray={`${2*Math.PI*50*indice.general/100} ${2*Math.PI*50}`} strokeDashoffset={2*Math.PI*50*0.25} strokeLinecap="round"/></svg>
+            <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:28,fontWeight:"bold",color:T.accent1}}>{indice.general}</span></div>
+          </div>
+          <p style={{fontSize:13,color:T.muted}}>{sesionesCompletadas} de 20 sesiones completadas</p>
+        </div>
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>POR PILAR</p>
+        {pilares.map(p=><div key={p.key} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:13,color:p.color,fontWeight:"bold"}}>{p.label}</span><span style={{fontSize:13,color:T.muted}}>{p.valor}%</span></div><div style={{height:6,background:T.border,borderRadius:3}}><div style={{height:"100%",background:p.color,borderRadius:3,width:`${p.valor}%`}}/></div></div>)}
+        {ultimosCheckins.length>0&&<><p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,margin:"20px 0 12px"}}>ESTADO EMOCIONAL RECIENTE</p><div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px 20px"}}><div style={{display:"flex",alignItems:"flex-end",gap:6,height:60,justifyContent:"space-around"}}>{ultimosCheckins.map((c,i)=>{const h=(c.estado/5)*52;const cols=[T.accent2,T.accent2,T.accent4,T.accent4,T.accent3];return<div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><div style={{width:20,height:h,background:cols[c.estado-1]||T.accent1,borderRadius:"4px 4px 2px 2px"}}/><span style={{fontSize:9,color:T.muted}}>{new Date(c.fecha).getDate()}/{new Date(c.fecha).getMonth()+1}</span></div>;}  )}</div></div></>}
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,margin:"20px 0 12px"}}>SESIONES COMPLETADAS</p>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(5,1fr)",gap:6}}>
+          {CURRICULUM.map((l,i)=>{const k=`${l.s}-${l.d}`;const done=sesiones[k];const c=PILAR_COLOR[l.pilar];return<div key={i} style={{aspectRatio:"1",borderRadius:8,background:done?c:T.card,border:`1px solid ${done?c:T.border}`,display:"flex",alignItems:"center",justifyContent:"center"}}>{done?<Icon name="check" size={14} color="#fff"/>:<span style={{fontSize:10,color:T.muted}}>{i+1}</span>}</div>;})}
+        </div>
+        {meditaciones.length>0&&<><p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,margin:"24px 0 12px"}}>DIARIO DE MEDITACIÓN</p>{meditaciones.slice(-5).reverse().map((m,i)=><div key={i} style={{background:T.card,border:"1px solid #7B68EE30",borderRadius:12,padding:"14px 16px",marginBottom:10}}><div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}><div style={{display:"flex",alignItems:"center",gap:8}}><span style={{fontSize:16}}>🧘</span><span style={{fontSize:13,fontWeight:"bold",color:"#7B68EE"}}>{m.duracion} min</span></div><span style={{fontSize:11,color:T.muted}}>{new Date(m.fecha).toLocaleDateString("es-CO",{day:"numeric",month:"short"})}</span></div>{m.sensacion&&<p style={{fontSize:12,color:T.muted,marginBottom:m.pensamiento?6:0}}>Sensación: <span style={{color:T.text}}>{m.sensacion}</span></p>}{m.pensamiento&&<p style={{fontSize:13,color:T.text,fontStyle:"italic",lineHeight:1.5,borderLeft:"2px solid #7B68EE50",paddingLeft:10,marginTop:6}}>"{m.pensamiento}"</p>}</div>)}</>}
+      </div>
+    );
+  };
+
+  const navItems=[{key:"home",icon:"home",label:"Inicio"},{key:"coach",icon:"chat",label:"Coach"},{key:"progreso",icon:"chart",label:"Progreso"}];
+
+  return(
+    <div style={{background:T.bg,height:"100vh",fontFamily:"Georgia,serif",color:T.text,maxWidth:480,margin:"0 auto",display:"flex",flexDirection:"column"}}>
+      <div style={{flex:1,overflowY:"auto",animation:"fadeUp 0.3s ease"}}>
+        {tab==="home"&&renderHome()}
+        {tab==="coach"&&renderCoach()}
+        {tab==="progreso"&&renderProgreso()}
+      </div>
+      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",flexShrink:0}}>
+        {navItems.map(n=><button key={n.key} onClick={()=>setTab(n.key)} style={{flex:1,background:"none",border:"none",padding:"12px 8px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><Icon name={n.icon} size={22} color={tab===n.key?T.accent1:T.muted}/><span style={{fontSize:10,color:tab===n.key?T.accent1:T.muted,fontFamily:"monospace",letterSpacing:0.5}}>{n.label}</span></button>)}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
