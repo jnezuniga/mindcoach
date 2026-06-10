@@ -16,8 +16,8 @@ console.warn=(...args)=>{if(args[0]&&typeof args[0]==='string'&&args[0].includes
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-  html,body{background:#0A0A0F;font-family:Georgia,serif;height:100%;overflow:hidden;}
-  #root{height:100%;overflow:hidden;}
+  html,body{background:#0A0A0F;font-family:Georgia,serif;height:100%;height:-webkit-fill-available;overflow:hidden;}
+  #root{height:100%;height:-webkit-fill-available;overflow:hidden;}
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-track{background:#0A0A0F;}
   ::-webkit-scrollbar-thumb{background:#2A2A3F;border-radius:2px;}
@@ -589,9 +589,9 @@ function App(){
 
   const renderCoach=()=>(
     <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 68px)"}}>
-      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 20px"}}>
-        <p style={{fontSize:16,fontWeight:"bold"}}>Coach</p>
-        <p style={{fontSize:12,color:T.muted,marginTop:2}}>Cuéntame qué pasó hoy</p>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 20px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div><p style={{fontSize:16,fontWeight:"bold"}}>Coach</p><p style={{fontSize:12,color:T.muted,marginTop:2}}>Cuéntame qué pasó hoy</p></div>
+        {messages.length>0&&<button onClick={()=>{setMessages([]);lsSave("mc_messages",[]);}} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 12px",color:T.muted,fontSize:12,cursor:"pointer"}}>Limpiar</button>}
       </div>
       <div style={{flex:1,overflowY:"auto",padding:"20px 16px"}}>
         {messages.length===0&&<div style={{textAlign:"center",padding:"40px 20px"}}>
@@ -643,13 +643,13 @@ function App(){
   const navItems=[{key:"home",icon:"home",label:"Inicio"},{key:"coach",icon:"chat",label:"Coach"},{key:"progreso",icon:"chart",label:"Progreso"}];
 
   return(
-    <div style={{background:T.bg,height:"100vh",fontFamily:"Georgia,serif",color:T.text,maxWidth:480,margin:"0 auto",display:"flex",flexDirection:"column"}}>
+    <div style={{background:T.bg,height:"100vh",height:"-webkit-fill-available",fontFamily:"Georgia,serif",color:T.text,maxWidth:480,margin:"0 auto",display:"flex",flexDirection:"column"}}>
       <div style={{flex:1,overflowY:"auto",animation:"fadeUp 0.3s ease"}}>
         {tab==="home"&&renderHome()}
         {tab==="coach"&&renderCoach()}
         {tab==="progreso"&&renderProgreso()}
       </div>
-      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",flexShrink:0}}>
+      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,display:"flex",flexShrink:0,paddingBottom:"env(safe-area-inset-bottom)"}}>
         {navItems.map(n=><button key={n.key} onClick={()=>setTab(n.key)} style={{flex:1,background:"none",border:"none",padding:"12px 8px",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",gap:4}}><Icon name={n.icon} size={22} color={tab===n.key?T.accent1:T.muted}/><span style={{fontSize:10,color:tab===n.key?T.accent1:T.muted,fontFamily:"monospace",letterSpacing:0.5}}>{n.label}</span></button>)}
       </div>
     </div>
