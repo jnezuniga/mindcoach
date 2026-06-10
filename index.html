@@ -8,12 +8,8 @@
 <meta name="theme-color" content="#0A0A0F"/>
 <title>MindCoach</title>
 <script>
-// Suprimir el aviso de Babel antes de que aparezca
-const _warn = console.warn.bind(console);
-console.warn = (...args) => {
-  if (args[0] && typeof args[0] === 'string' && args[0].includes('Babel')) return;
-  _warn(...args);
-};
+const _warn=console.warn.bind(console);
+console.warn=(...args)=>{if(args[0]&&typeof args[0]==='string'&&args[0].includes('Babel'))return;_warn(...args);};
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
@@ -35,7 +31,6 @@ console.warn = (...args) => {
 <div id="root"></div>
 <script type="text/babel">
 const{useState,useEffect,useRef}=React;
-
 const T={bg:"#0A0A0F",surface:"#12121A",card:"#1A1A26",border:"#2A2A3F",
   accent1:"#6C63FF",accent2:"#FF6584",accent3:"#43E97B",accent4:"#F7C948",
   text:"#E8E8F0",muted:"#7070A0",pnl:"#6C63FF",ie:"#FF6584",mm:"#43E97B"};
@@ -126,17 +121,99 @@ const CURRICULUM=[
 const PILAR_COLOR={PNL:T.pnl,IE:T.ie,MM:T.mm};
 const PILAR_LABEL={PNL:"PNL",IE:"Inteligencia Emocional",MM:"Modelos Mentales"};
 
+// Coach sin API - respuestas pregeneradas inteligentes
+const COACH_RESPONSES = {
+  PNL: {
+    intro: "La PNL trabaja con los patrones de lenguaje y comportamiento que usamos sin darnos cuenta. La clave es observar antes de actuar.",
+    tips: [
+      "Cuando detectes una generalización ('siempre', 'nunca'), haz una pausa de 3 segundos antes de responder. Ese espacio es donde nace la pregunta de precisión.",
+      "El rapport no es una técnica — es un estado. Si tú estás presente y genuinamente curioso por el otro, el espejeo ocurre naturalmente.",
+      "Para el reencuadre: busca siempre 3 interpretaciones alternativas antes de quedarte con una. La tercera suele ser la más útil.",
+      "Los sistemas representacionales se detectan en los verbos, no en el contenido. 'Veo lo que dices' vs 'Escucho tu punto' vs 'Siento que tiene sentido' — son mundos distintos.",
+      "Un ancla instalada en un estado mediocre no funciona. Si al practicarla no sientes nada intenso, repite el ejercicio con un recuerdo más poderoso."
+    ]
+  },
+  IE: {
+    intro: "La inteligencia emocional no es controlar las emociones — es usarlas como información de alta calidad para tomar mejores decisiones.",
+    tips: [
+      "Nombrar una emoción reduce su intensidad en un 40%. No es magia — el córtex prefrontal se activa y regula la amígdala. Es neurociencia básica.",
+      "La diferencia entre reaccionar y responder es de 6 segundos. Ese es el tiempo que tarda el córtex en procesar lo que la amígdala ya activó.",
+      "El sesgo de negatividad se contrarresta con registro explícito, no con optimismo. Escribe lo que salió bien — el cerebro necesita evidencia concreta.",
+      "Una creencia limitante tiene siempre tres características: es absoluta, es sobre ti mismo, y la repites sin cuestionarla. Identifica cuál de las tres aparece primero.",
+      "La empatía funcional requiere que primero estés regulado tú. No puedes leer a otro si estás en modo supervivencia."
+    ]
+  },
+  MM: {
+    intro: "Los modelos mentales son atajos de pensamiento probados. No los inventas — los reconoces cuando los necesitas y los aplicas con precisión.",
+    tips: [
+      "El pensamiento de segundo orden tiene una pregunta clave: '¿Y después qué?' Aplícala tres veces seguidas a cualquier decisión importante.",
+      "La inversión de Munger funciona mejor para problemas crónicos. Si llevas meses en el mismo punto, pregúntate qué estás haciendo activamente para mantenerte ahí.",
+      "La Navaja de Occam no dice que la realidad es simple — dice que no agregues complejidad innecesaria. La distinción importa.",
+      "Tu círculo de competencia tiene un borde difuso. La zona peligrosa no es el centro ni el exterior — es el borde, donde crees que sabes más de lo que sabes.",
+      "La auditoría de decisiones es más valiosa en las decisiones pequeñas. Las grandes las analizamos siempre. Las pequeñas son donde están los patrones reales."
+    ]
+  },
+  general: [
+    "Cuéntame qué situación concreta quieres trabajar hoy. Con el contexto específico puedo darte una orientación más precisa.",
+    "¿Qué técnica de las que has practicado esta semana sientes que más te costó aplicar en una situación real?",
+    "El entrenamiento de hoy tiene tres fases: teoría, ejercicio y aplicación real. ¿En cuál de las tres sientes más resistencia?",
+    "Recuerda: el objetivo no es hacer las técnicas perfectas, sino hacerlas más automáticas cada día. ¿Qué notaste diferente hoy comparado con la semana pasada?",
+    "La consistencia supera la intensidad. Cinco minutos diarios durante 30 días producen más cambio que una sesión intensa de 3 horas. ¿Cómo va tu racha?",
+    "¿Hay alguna situación específica esta semana donde sientas que podrías haber aplicado algo de lo que estamos trabajando?",
+  ],
+  objeciones: [
+    "Para manejar objeciones usa la secuencia: Escucha completa → Parafrasea → Valida → Reencuadra. El error más común es saltarse el paso de validar.",
+    "La objeción más común en ventas consultivas no es de precio — es de riesgo percibido. '¿Y si esto no funciona para nosotros?' Ahí es donde entra el reencuadre de contexto.",
+    "Practica esto: cuando alguien te dé una objeción, di primero 'Tiene sentido' o 'Entiendo por qué lo ves así'. Eso solo ya baja la guardia del otro.",
+  ],
+  meditacion: [
+    "La meditación matutina prepara el sistema nervioso para el día. Lo que registraste hoy es información sobre tu estado de base — úsala para elegir el ejercicio con más intención.",
+    "Los insights que surgen en meditación son fragmentos del procesamiento inconsciente. No los analices demasiado — anótalos y déjalos reposar. Su significado aparece después.",
+    "La constancia en la meditación produce un efecto acumulativo. No es lo que sientes en cada sesión — es lo que cambia en tu reactividad cotidiana después de semanas.",
+  ]
+};
+
+function getCoachResponse(input, perfil, checkins) {
+  const txt = input.toLowerCase();
+  const semana = perfil?.semana || 1;
+  const curSession = CURRICULUM.find(l => l.s === perfil?.semana && l.d === perfil?.dia) || CURRICULUM[0];
+
+  // Detectar tema
+  if (txt.includes('meditac')) {
+    const tips = COACH_RESPONSES.meditacion;
+    return tips[Math.floor(Math.random() * tips.length)];
+  }
+  if (txt.includes('objecion') || txt.includes('objeción') || txt.includes('cliente dice') || txt.includes('no le interesa')) {
+    const tips = COACH_RESPONSES.objeciones;
+    return tips[Math.floor(Math.random() * tips.length)];
+  }
+  if (txt.includes('rapport') || txt.includes('pnl') || txt.includes('reencuadre') || txt.includes('ancla') || txt.includes('metamodelo')) {
+    const tips = COACH_RESPONSES.PNL.tips;
+    return COACH_RESPONSES.PNL.intro + "\n\n" + tips[Math.floor(Math.random() * tips.length)];
+  }
+  if (txt.includes('emocion') || txt.includes('emoción') || txt.includes('ansiedad') || txt.includes('miedo') || txt.includes('frustrac') || txt.includes('ie') || txt.includes('creencia')) {
+    const tips = COACH_RESPONSES.IE.tips;
+    return COACH_RESPONSES.IE.intro + "\n\n" + tips[Math.floor(Math.random() * tips.length)];
+  }
+  if (txt.includes('modelo') || txt.includes('decision') || txt.includes('decisión') || txt.includes('munger') || txt.includes('occam') || txt.includes('segundo orden')) {
+    const tips = COACH_RESPONSES.MM.tips;
+    return COACH_RESPONSES.MM.intro + "\n\n" + tips[Math.floor(Math.random() * tips.length)];
+  }
+  if (txt.includes('hoy') || txt.includes('ejercicio') || txt.includes('sesion') || txt.includes('sesión') || txt.includes('práctica') || txt.includes('practica')) {
+    return `Hoy trabajas en "${curSession.titulo}" (${PILAR_LABEL[curSession.pilar]}). El ejercicio clave es: ${curSession.ejercicio.slice(0,120)}... ¿Ya lo pusiste en práctica en alguna situación real?`;
+  }
+  if (txt.includes('semana') || txt.includes('progreso') || txt.includes('cómo voy') || txt.includes('como voy')) {
+    const checkinReciente = checkins.slice(-3);
+    const promedio = checkinReciente.length > 0 ? (checkinReciente.reduce((a,c) => a + (c.estado||3), 0) / checkinReciente.length).toFixed(1) : "sin datos";
+    return `Vas en la Semana ${semana} de 4. Tu estado emocional promedio reciente es ${promedio}/5. ${semana === 1 ? 'Estás construyendo los cimientos — la consistencia aquí define todo lo que sigue.' : semana >= 3 ? 'Ya tienes base sólida. El reto ahora es integrar las técnicas bajo presión real, no solo en contextos cómodos.' : 'Estás en la fase de aplicación activa. Cada situación real donde uses una técnica vale más que 10 ejercicios teóricos.'}`;
+  }
+  // Respuesta general contextualizada
+  const general = COACH_RESPONSES.general;
+  return general[Math.floor(Math.random() * general.length)];
+}
+
 function lsLoad(key){try{const v=localStorage.getItem(key);return v?JSON.parse(v):null;}catch{return null;}}
 function lsSave(key,val){try{localStorage.setItem(key,JSON.stringify(val));}catch{}}
-
-async function askCoach(messages,perfil,checkins,sesionesCompletadas){
-  const ctx=`Eres MindCoach, entrenador personal de desarrollo humano. Tu usuario es Juan, ingeniero civil, CEO de Zuperciviles (consultora de datos para construcción), Medellín, Colombia. Semana actual: ${perfil?.semana||1}, Día: ${perfil?.dia||1}. Sesiones completadas: ${sesionesCompletadas||0}/20. Últimos check-ins: ${JSON.stringify(checkins?.slice(-3)||[])}. Habla en español con tuteo. Sé directo, concreto, ejemplos del mundo real de ingeniería o negocios. Máximo 3 párrafos. Sin asteriscos.`;
-  try{
-    const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,system:ctx,messages})});
-    const data=await res.json();
-    return data.content?.[0]?.text||"Error conectando con el coach.";
-  }catch(e){return "Error de conexión. Verifica tu internet.";}
-}
 
 const Icon=({name,size=20,color=T.text})=>{
   const icons={
@@ -149,9 +226,73 @@ const Icon=({name,size=20,color=T.text})=>{
     book:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
     send:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
     lock:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>,
+    back:<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>,
   };
   return icons[name]||null;
 };
+
+function PilarScreen({pilar, sesiones, perfil, onSesion, onBack}){
+  const color = PILAR_COLOR[pilar];
+  const label = PILAR_LABEL[pilar];
+  const lecciones = CURRICULUM.filter(l => l.pilar === pilar);
+  const completadas = lecciones.filter(l => sesiones[`${l.s}-${l.d}`]).length;
+  const pct = Math.round((completadas / lecciones.length) * 100);
+  const descripcion = {
+    PNL: "Técnicas de comunicación y lenguaje que te permiten conectar, persuadir y reencuadrar con precisión.",
+    IE: "Herramientas para reconocer, gestionar y usar tus emociones como ventaja estratégica.",
+    MM: "Marcos de pensamiento probados para tomar mejores decisiones con menos ruido mental."
+  };
+  return(
+    <div style={{background:T.bg,height:"100vh",overflowY:"auto",fontFamily:"Georgia,serif",color:T.text}}>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"16px 20px",display:"flex",alignItems:"center",gap:12,position:"sticky",top:0,zIndex:10}}>
+        <button onClick={onBack} style={{background:"none",border:"none",color:T.muted,cursor:"pointer",padding:4}}><Icon name="back" size={22} color={T.muted}/></button>
+        <div style={{flex:1}}>
+          <div style={{fontSize:11,color,fontFamily:"monospace",letterSpacing:2}}>{label.toUpperCase()}</div>
+          <div style={{fontSize:16,fontWeight:"bold",marginTop:2}}>{label}</div>
+        </div>
+        <div style={{background:`${color}20`,border:`1px solid ${color}50`,borderRadius:10,padding:"6px 12px"}}>
+          <span style={{fontSize:13,color,fontWeight:"bold"}}>{pct}%</span>
+        </div>
+      </div>
+      <div style={{padding:"20px 20px 100px"}}>
+        <div style={{background:`${color}10`,border:`1px solid ${color}30`,borderRadius:14,padding:"16px",marginBottom:24}}>
+          <p style={{fontSize:14,color:T.muted,lineHeight:1.7}}>{descripcion[pilar]}</p>
+          <div style={{height:4,background:T.border,borderRadius:2,marginTop:12}}>
+            <div style={{height:"100%",background:color,borderRadius:2,width:`${pct}%`,transition:"width 0.6s"}}/>
+          </div>
+          <p style={{fontSize:11,color:T.muted,marginTop:8,fontFamily:"monospace"}}>{completadas}/{lecciones.length} SESIONES COMPLETADAS</p>
+        </div>
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:14}}>SESIONES</p>
+        {lecciones.map((l,i)=>{
+          const key=`${l.s}-${l.d}`;
+          const done=sesiones[key];
+          const esCurrent=l.s===perfil?.semana&&l.d===perfil?.dia;
+          return(
+            <div key={i} onClick={()=>onSesion(l)}
+              style={{background:esCurrent?`${color}15`:T.card,border:`1px solid ${esCurrent?color:done?`${color}50`:T.border}`,
+                borderRadius:14,padding:"16px",marginBottom:12,cursor:"pointer",transition:"all 0.2s"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:4}}>
+                    <div style={{width:6,height:6,borderRadius:"50%",background:done?color:esCurrent?color:T.border,flexShrink:0}}/>
+                    <span style={{fontSize:11,color:T.muted,fontFamily:"monospace"}}>S{l.s}D{l.d}</span>
+                    {esCurrent&&<span style={{fontSize:10,background:`${color}30`,color,borderRadius:4,padding:"2px 6px",fontFamily:"monospace"}}>HOY</span>}
+                  </div>
+                  <p style={{fontSize:15,fontWeight:"bold",color:done?T.muted:T.text}}>{l.titulo}</p>
+                </div>
+                {done?<div style={{background:`${T.accent3}20`,border:`1px solid ${T.accent3}`,borderRadius:8,padding:"4px 8px",marginLeft:12}}><Icon name="check" size={14} color={T.accent3}/></div>:
+                  <div style={{background:esCurrent?color:T.border,borderRadius:8,padding:"4px 10px",marginLeft:12}}>
+                    <Icon name="arrow" size={14} color={esCurrent?"#fff":T.muted}/>
+                  </div>}
+              </div>
+              <p style={{fontSize:12,color:T.muted,lineHeight:1.5}}>{l.teoria.split('\n\n')[0].slice(0,100)}...</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function App(){
   const[tab,setTab]=useState("home");
@@ -169,6 +310,7 @@ function App(){
   const[checkinData,setCheckinData]=useState({estado:3,situacion:"",aprendizaje:""});
   const[meditacionActiva,setMeditacionActiva]=useState(false);
   const[meditacionData,setMeditacionData]=useState({duracion:5,sensacion:"",pensamiento:""});
+  const[pilarActivo,setPilarActivo]=useState(null);
   const chatEndRef=useRef(null);
 
   useEffect(()=>{
@@ -206,7 +348,9 @@ function App(){
     if(nDia>5){nDia=1;nSem=Math.min(nSem+1,4);}
     const newP={...perfil,semana:nSem,dia:nDia,racha:(perfil.racha||0)+1};
     setSesiones(newS);setPerfil(newP);lsSave("mc_sesiones",newS);lsSave("mc_perfil",newP);
-    setSesionActiva(null);setSesionFase("teoria");setTab("home");
+    setSesionActiva(null);setSesionFase("teoria");
+    setPilarActivo(null);
+    setTab("home");
   }
 
   async function guardarCheckin(){
@@ -221,14 +365,16 @@ function App(){
     setMeditacionActiva(false);setMeditacionData({duracion:5,sensacion:"",pensamiento:""});
   }
 
-  async function sendMessage(){
+  function sendMessage(){
     if(!input.trim()||loading)return;
     const userMsg={role:"user",content:input};
     const newM=[...messages,userMsg];
     setMessages(newM);setInput("");setLoading(true);
-    const reply=await askCoach(newM.map(m=>({role:m.role,content:m.content})),perfil,checkins,sesionesCompletadas);
-    const fin=[...newM,{role:"assistant",content:reply}];
-    setMessages(fin);lsSave("mc_messages",fin);setLoading(false);
+    setTimeout(()=>{
+      const reply=getCoachResponse(input,perfil,checkins);
+      const fin=[...newM,{role:"assistant",content:reply}];
+      setMessages(fin);lsSave("mc_messages",fin);setLoading(false);
+    },800);
   }
 
   if(appLoading)return(
@@ -285,6 +431,12 @@ function App(){
       </div>
     );
   }
+
+  if(pilarActivo)return(
+    <PilarScreen pilar={pilarActivo} sesiones={sesiones} perfil={perfil}
+      onSesion={(l)=>{setSesionActiva(l);setSesionFase("teoria");}}
+      onBack={()=>setPilarActivo(null)}/>
+  );
 
   if(meditacionActiva)return(
     <div style={{background:T.bg,height:"100vh",overflowY:"auto",fontFamily:"Georgia,serif",color:T.text}}>
@@ -352,12 +504,19 @@ function App(){
     const hoy=new Date().toDateString();
     const meditadoHoy=meditaciones.some(m=>new Date(m.fecha).toDateString()===hoy);
     const ultimaMed=meditaciones[meditaciones.length-1];
+    const pilares=[
+      {key:"PNL",color:T.pnl,emoji:"💬",desc:"Comunicación y lenguaje"},
+      {key:"IE",color:T.ie,emoji:"❤️",desc:"Gestión emocional"},
+      {key:"MM",color:T.mm,emoji:"🧠",desc:"Modelos de decisión"},
+    ];
     return(
       <div style={{padding:"20px 20px 100px"}}>
         <div style={{marginBottom:20}}>
           <p style={{fontSize:12,color:T.muted,letterSpacing:2,fontFamily:"monospace"}}>{new Date().toLocaleDateString("es-CO",{weekday:"long",day:"numeric",month:"long"}).toUpperCase()}</p>
           <h1 style={{fontSize:26,fontWeight:"bold",marginTop:4}}>Hola, Juan 👋</h1>
         </div>
+
+        {/* Meditación */}
         <div style={{background:meditadoHoy?"#7B68EE15":T.card,border:`1px solid ${meditadoHoy?"#7B68EE50":T.border}`,borderRadius:14,padding:"16px",marginBottom:16}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
             <div style={{flex:1}}>
@@ -367,7 +526,9 @@ function App(){
             {meditadoHoy?<div style={{background:`${T.accent3}20`,border:`1px solid ${T.accent3}`,borderRadius:8,padding:"4px 10px"}}><Icon name="check" size={14} color={T.accent3}/></div>:<button onClick={()=>setMeditacionActiva(true)} style={{background:"#7B68EE",border:"none",borderRadius:10,padding:"8px 14px",color:"#fff",fontSize:13,fontWeight:"bold",cursor:"pointer",whiteSpace:"nowrap",marginLeft:12}}>Registrar</button>}
           </div>
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:20}}>
+
+        {/* Índice + Racha */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:16}}>
           <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
             <p style={{fontSize:11,color:T.muted,fontFamily:"monospace",letterSpacing:1.5}}>ÍNDICE POTENCIAL</p>
             <p style={{fontSize:36,fontWeight:"bold",color:T.accent1,lineHeight:1.1,marginTop:4}}>{indice.general}</p>
@@ -379,15 +540,31 @@ function App(){
             <p style={{fontSize:11,color:T.muted,marginTop:8}}>días consecutivos</p>
           </div>
         </div>
-        <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px",marginBottom:20}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-            <p style={{fontSize:13,color:T.muted}}>Semana {perfil?.semana||1} de 4</p>
-            <p style={{fontSize:13,color:T.accent1}}>{sesionesCompletadas}/20 sesiones</p>
-          </div>
-          <div style={{display:"flex",gap:4}}>
-            {CURRICULUM.map((l,i)=>{const k=`${l.s}-${l.d}`;const done=sesiones[k];const current=l.s===perfil?.semana&&l.d===perfil?.dia;return<div key={i} style={{flex:1,height:6,borderRadius:3,background:done?PILAR_COLOR[l.pilar]:current?`${PILAR_COLOR[l.pilar]}60`:T.border}}/>;  })}
-          </div>
+
+        {/* Cards de pilares */}
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>TUS PILARES</p>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10,marginBottom:16}}>
+          {pilares.map(p=>{
+            const val=indice[p.key.toLowerCase()];
+            const lecs=CURRICULUM.filter(l=>l.pilar===p.key);
+            const comp=lecs.filter(l=>sesiones[`${l.s}-${l.d}`]).length;
+            return(
+              <div key={p.key} onClick={()=>setPilarActivo(p.key)}
+                style={{background:T.card,border:`1px solid ${p.color}40`,borderRadius:14,padding:"14px 10px",cursor:"pointer",textAlign:"center",transition:"all 0.2s"}}>
+                <div style={{fontSize:24,marginBottom:6}}>{p.emoji}</div>
+                <div style={{fontSize:11,color:p.color,fontFamily:"monospace",fontWeight:"bold",marginBottom:4}}>{p.key}</div>
+                <div style={{fontSize:10,color:T.muted,marginBottom:8,lineHeight:1.3}}>{p.desc}</div>
+                <div style={{height:3,background:T.border,borderRadius:2,marginBottom:4}}>
+                  <div style={{height:"100%",background:p.color,borderRadius:2,width:`${val}%`}}/>
+                </div>
+                <div style={{fontSize:10,color:T.muted,fontFamily:"monospace"}}>{comp}/{lecs.length}</div>
+              </div>
+            );
+          })}
         </div>
+
+        {/* Sesión del día */}
+        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>SESIÓN DE HOY</p>
         <div style={{background:`linear-gradient(135deg,${color}20,${T.card})`,border:`1px solid ${color}50`,borderRadius:16,padding:"20px",marginBottom:16}}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:12}}>
             <div><div style={{fontSize:11,color,fontFamily:"monospace",letterSpacing:2,marginBottom:6}}>{PILAR_LABEL[cursoActual.pilar]}</div><h2 style={{fontSize:20,fontWeight:"bold"}}>{cursoActual.titulo}</h2></div>
@@ -395,20 +572,37 @@ function App(){
           </div>
           {yaHecha?<div style={{display:"flex",gap:10}}><button onClick={()=>setCheckinActivo(true)} style={{flex:1,background:T.accent2,border:"none",borderRadius:10,padding:"12px",color:"#fff",fontSize:14,fontWeight:"bold",cursor:"pointer"}}>Check-in nocturno</button><button onClick={()=>setTab("coach")} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"12px",color:T.text,fontSize:14,cursor:"pointer"}}>Hablar con coach</button></div>:<button onClick={()=>{setSesionActiva(cursoActual);setSesionFase("teoria");}} style={{width:"100%",background:color,border:"none",borderRadius:10,padding:"14px",color:"#fff",fontSize:15,fontWeight:"bold",cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}><Icon name="book" size={18} color="#fff"/> Iniciar sesión</button>}
         </div>
-        <p style={{fontSize:12,color:T.muted,fontFamily:"monospace",letterSpacing:2,marginBottom:12}}>PRÓXIMAS SESIONES</p>
-        {CURRICULUM.slice(CURRICULUM.findIndex(l=>l.s===perfil?.semana&&l.d===perfil?.dia)+1,CURRICULUM.findIndex(l=>l.s===perfil?.semana&&l.d===perfil?.dia)+4).map((l,i)=>{
-          const c=PILAR_COLOR[l.pilar];
-          return<div key={i} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"14px 16px",marginBottom:10,display:"flex",alignItems:"center",gap:12,opacity:0.6}}><div style={{width:8,height:8,borderRadius:"50%",background:c,flexShrink:0}}/><div style={{flex:1}}><p style={{fontSize:13,fontWeight:"bold"}}>{l.titulo}</p><p style={{fontSize:11,color:T.muted,marginTop:2}}>S{l.s}D{l.d} · {PILAR_LABEL[l.pilar]}</p></div><Icon name="lock" size={14} color={T.muted}/></div>;
-        })}
+
+        {/* Progreso semana */}
+        <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:14,padding:"16px"}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+            <p style={{fontSize:13,color:T.muted}}>Semana {perfil?.semana||1} de 4</p>
+            <p style={{fontSize:13,color:T.accent1}}>{sesionesCompletadas}/20</p>
+          </div>
+          <div style={{display:"flex",gap:4}}>
+            {CURRICULUM.map((l,i)=>{const k=`${l.s}-${l.d}`;const done=sesiones[k];const current=l.s===perfil?.semana&&l.d===perfil?.dia;return<div key={i} style={{flex:1,height:6,borderRadius:3,background:done?PILAR_COLOR[l.pilar]:current?`${PILAR_COLOR[l.pilar]}60`:T.border}}/>;  })}
+          </div>
+        </div>
       </div>
     );
   };
 
   const renderCoach=()=>(
     <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 68px)"}}>
-      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 20px"}}><p style={{fontSize:16,fontWeight:"bold"}}>Coach IA</p><p style={{fontSize:12,color:T.muted,marginTop:2}}>Cuéntame qué pasó hoy</p></div>
+      <div style={{background:T.surface,borderBottom:`1px solid ${T.border}`,padding:"14px 20px"}}>
+        <p style={{fontSize:16,fontWeight:"bold"}}>Coach</p>
+        <p style={{fontSize:12,color:T.muted,marginTop:2}}>Cuéntame qué pasó hoy</p>
+      </div>
       <div style={{flex:1,overflowY:"auto",padding:"20px 16px"}}>
-        {messages.length===0&&<div style={{textAlign:"center",padding:"40px 20px"}}><div style={{fontSize:40,marginBottom:16}}>🧠</div><p style={{color:T.muted,fontSize:14,lineHeight:1.6}}>Cuéntame cómo aplicaste el ejercicio de hoy, o hazme cualquier pregunta.</p><div style={{marginTop:20,display:"flex",flexDirection:"column",gap:8}}>{["¿Cómo aplico rapport en mi próxima reunión?","Quiero practicar manejo de objeciones","¿Qué es el pensamiento de segundo orden?"].map((s,i)=><button key={i} onClick={()=>setInput(s)} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.muted,fontSize:13,cursor:"pointer",textAlign:"left"}}>{s}</button>)}</div></div>}
+        {messages.length===0&&<div style={{textAlign:"center",padding:"40px 20px"}}>
+          <div style={{fontSize:40,marginBottom:16}}>🧠</div>
+          <p style={{color:T.muted,fontSize:14,lineHeight:1.6,marginBottom:20}}>Cuéntame cómo aplicaste el ejercicio de hoy, o hazme cualquier pregunta sobre las técnicas.</p>
+          <div style={{display:"flex",flexDirection:"column",gap:8}}>
+            {["¿Cómo aplico rapport en mi próxima reunión?","Quiero practicar manejo de objeciones","¿Cómo va mi progreso esta semana?","¿Qué es el pensamiento de segundo orden?","Registré mi meditación, ¿qué sigue?"].map((s,i)=>(
+              <button key={i} onClick={()=>setInput(s)} style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:"10px 14px",color:T.muted,fontSize:13,cursor:"pointer",textAlign:"left"}}>{s}</button>
+            ))}
+          </div>
+        </div>}
         {messages.map((m,i)=><div key={i} style={{marginBottom:16,display:"flex",justifyContent:m.role==="user"?"flex-end":"flex-start"}}><div style={{maxWidth:"85%",background:m.role==="user"?T.accent1:T.card,border:m.role==="assistant"?`1px solid ${T.border}`:"none",borderRadius:m.role==="user"?"16px 16px 4px 16px":"16px 16px 16px 4px",padding:"12px 16px"}}><p style={{fontSize:14,lineHeight:1.7,color:T.text,whiteSpace:"pre-wrap"}}>{m.content}</p></div></div>)}
         {loading&&<div style={{display:"flex",gap:6,padding:"12px 16px"}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:T.accent1,animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div>}
         <div ref={chatEndRef}/>
@@ -461,7 +655,6 @@ function App(){
     </div>
   );
 }
-
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
