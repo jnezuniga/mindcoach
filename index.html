@@ -607,8 +607,8 @@ function App(){
         {loading&&<div style={{display:"flex",gap:6,padding:"12px 16px"}}>{[0,1,2].map(i=><div key={i} style={{width:8,height:8,borderRadius:"50%",background:T.accent1,animation:`pulse 1.2s ease-in-out ${i*0.2}s infinite`}}/>)}</div>}
         <div ref={chatEndRef}/>
       </div>
-      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,padding:"12px 16px",display:"flex",gap:10,alignItems:"flex-end"}}>
-        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}} placeholder="Escribe aquí..." rows={1} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",maxHeight:120,overflowY:"auto"}}/>
+      <div style={{background:T.surface,borderTop:`1px solid ${T.border}`,padding:"12px 16px",display:"flex",gap:10,alignItems:"center"}}>
+        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendMessage();}}} placeholder="Escribe aquí..." rows={2} style={{flex:1,background:T.card,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 14px",color:T.text,fontSize:14,outline:"none",maxHeight:100,overflowY:"auto",lineHeight:1.5}}/>
         <button onClick={sendMessage} disabled={!input.trim()||loading} style={{background:input.trim()&&!loading?T.accent1:T.border,border:"none",borderRadius:12,width:44,height:44,cursor:input.trim()&&!loading?"pointer":"default",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}><Icon name="send" size={18} color="#fff"/></button>
       </div>
     </div>
